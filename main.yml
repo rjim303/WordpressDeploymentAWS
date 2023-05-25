@@ -1,0 +1,104 @@
+# Autor: Rafael Jimenez
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  EC2InstanceType:
+    Description: Select Instance Type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+  EC2AMI:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id
+
+
+Resources:
+# Crear grupo de seguridad
+    InstanceSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        Tags:
+          - Key: Name
+            Value: !Join [ '-', [ !Ref AWS::StackName, !Ref AWS::AccountId] ]
+        GroupName: WebServerSecurityGroup
+        GroupDescription: "Grupo de seguridad interno para la pila ${AWS::StackName}"
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 3306
+            ToPort: 3306
+            CidrIp: 0.0.0.0/0
+
+# Crear base de datos
+#    WordpressDB:
+#      Type: AWS::RDS::DBInstance
+#      Properties:
+#        DBInstanceIdentifier: RafaDatabase
+#        DBName: WordpressDatabase
+#        AllocatedStorage: 20
+#        DBInstanceClass: db.t3.micro
+#        Engine: mariadb
+#        EngineVersion: "10.6.10"
+#        MasterUsername: rafawordpress
+#        MasterUserPassword: rafawordpress1234
+#        VPCSecurityGroups: 
+#          - !GetAtt
+#            - InstanceSecurityGroup
+#            - GroupId
+
+# Crear instancia de EC2
+    WordpressServerRafa:
+      Type: AWS::EC2::Instance
+      Properties:
+        Tags:
+          - Key: Name
+            Value: !Join [ '-', [ !Ref AWS::StackName, !Ref AWS::AccountId] ]
+        ImageId: ami-0889a44b331db0194
+        InstanceType: !Ref EC2InstanceType
+        IamInstanceProfile: LabInstanceProfile
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+        KeyName: vockey
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash -xe
+
+             # Install httpd
+            sudo dnf update && sudo dnf upgrade -y
+            sudo dnf install httpd -y && sudo service httpd start
+            sudo systemctl enable httpd
+
+            # Install MySQLServer
+            sudo dnf install mariadb105-server -y && sudo service mariadb start
+            sudo service mariadb start
+            sudo systemctl enable mariadb
+
+            # Install PHP
+            sudo dnf install php php-devel -y
+
+            # Create phpinfo file
+            echo "<?php phpinfo();?>" | sudo tee /var/www/html/phpinfo.php &>/dev/null
+
+Outputs:
+  InstaceId:
+    Description: Instance ID
+    Value: !Ref WordpressServerRafa
+  ServerPublicIP:
+    Description: Public URL of the server
+    Value: !Sub "http://${WordpressServerRafa.PublicDnsName}:80"
