@@ -46,21 +46,22 @@ Resources:
             CidrIp: 0.0.0.0/0
 
 # Crear base de datos
-#    WordpressDB:
-#      Type: AWS::RDS::DBInstance
-#      Properties:
-#        DBInstanceIdentifier: RafaDatabase
-#        DBName: WordpressDatabase
-#        AllocatedStorage: 20
-#        DBInstanceClass: db.t3.micro
-#        Engine: mariadb
-#        EngineVersion: "10.6.10"
-#        MasterUsername: rafawordpress
-#        MasterUserPassword: rafawordpress1234
-#        VPCSecurityGroups: 
-#          - !GetAtt
-#            - InstanceSecurityGroup
-#            - GroupId
+    WordpressDB:
+      Type: AWS::RDS::DBInstance
+      Properties:
+        DBInstanceIdentifier: RafaDatabase
+        DBName: WordpressDatabase
+        AllocatedStorage: 20
+        DBInstanceClass: db.t3.micro
+        Engine: mariadb
+        EngineVersion: "10.6.10"
+        MasterUsername: rafawordpress
+        MasterUserPassword: rafawordpress1234
+        VPCSecurityGroups:
+          - !GetAtt
+            - InstanceSecurityGroup
+            - GroupId
+
 
 # Crear instancia de EC2
     WordpressServerRafa:
@@ -85,9 +86,7 @@ Resources:
             sudo systemctl enable httpd
 
             # Install MySQLServer
-            sudo dnf install mariadb105-server -y && sudo service mariadb start
-            sudo service mariadb start
-            sudo systemctl enable mariadb
+            sudo dnf install mariadb105-server -y
 
             # Install PHP
             sudo dnf install php php-devel -y
@@ -106,21 +105,17 @@ Resources:
             sudo chown ec2-user:ec2-user wordpress
 
             # Database Configuration
-            sudo mysql -u root -p -e "CREATE USER 'wordpressuser'@'localhost' IDENTIFIED BY 'pass1234$';"
-            sudo mysql -u root -p -e "CREATE DATABASE wordpressdb;"
-            sudo mysql -u root -p -e "GRANT ALL PRIVILEGES ON wordpressdb.* TO wordpressuser@localhost;"
-            sudo mysql -u root -p -e "FLUSH PRIVILEGES;"
 
             # Edit wp-config.php file
             cp wordpress/wp-config-sample.php wordpress/wp-config.php
             cd wordpress
-            sed -i 's/database_name_here/wordpressdb/' wp-config.php
+            sed -i 's/database_name_here/WordpressDatabase/' wp-config.php
 
             sed -i 's/username_here/wordpressuser/' wp-config.php
 
             sed -i 's/password_here/pass1234$/' wp-config.php
 
-            #sed -i 's/localhost/direccion del RDS/' wp-config.php
+            sed -i 's/localhost/rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com/' wp-config.php
 
 
             # Other configurations
@@ -134,6 +129,11 @@ Resources:
             sudo chown -R apache:apache /var/www
 
             sudo chmod 2775 /var/www
+
+            sleep 50
+            sudo mysql -u rafawordpress -h rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com -prafawordpress1234 -e "CREATE USER 'wordpressuser'@'%' IDENTIFIED BY 'pass1234$';"
+            sudo mysql -u rafawordpress -h rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com -prafawordpress1234 -e "GRANT ALL PRIVILEGES ON WordpressDatabase.* TO 'wordpressuser'@'%';"
+            sudo mysql -u rafawordpress -h rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com -prafawordpress1234 -e "FLUSH PRIVILEGES;"
 
             sudo service httpd restart
 
