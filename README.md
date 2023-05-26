@@ -58,9 +58,9 @@ sudo service httpd restart
 
 ## Configuración Base de Datos
 ```bash
-sudo mysql -u rafawordpress -h rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com -prafawordpress1234 -e "CREATE USER 'wordpressuser'@'%' IDENTIFIED BY 'pass1234$';"
-sudo mysql -u rafawordpress -h rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com -prafawordpress1234 -e "GRANT ALL PRIVILEGES ON WordpressDatabase.* TO 'wordpressuser'@'%';"
-sudo mysql -u rafawordpress -h rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com -prafawordpress1234 -e "FLUSH PRIVILEGES;"
+sudo mysql -u rafawordpress -h ${WordpressDB.Endpoint.Address} -prafawordpress1234 -e "CREATE USER 'wordpressuser'@'%' IDENTIFIED BY 'pass1234$';"
+sudo mysql -u rafawordpress -h ${WordpressDB.Endpoint.Address} -prafawordpress1234 -e "GRANT ALL PRIVILEGES ON WordpressDatabase.* TO 'wordpressuser'@'%';"
+sudo mysql -u rafawordpress -h ${WordpressDB.Endpoint.Address}  -prafawordpress1234 -e "FLUSH PRIVILEGES;"
 ```
 
 ## Por último reiniciamos el servicio httpd
