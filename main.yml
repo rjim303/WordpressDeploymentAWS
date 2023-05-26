@@ -115,7 +115,7 @@ Resources:
 
             sed -i 's/password_here/pass1234$/' wp-config.php
 
-            sed -i 's/localhost/rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com/' wp-config.php
+            sed -i 's/localhost/${WordpressDB.Endpoint.Address}/' wp-config.php
 
 
             # Other configurations
@@ -131,16 +131,19 @@ Resources:
             sudo chmod 2775 /var/www
 
             sleep 50
-            sudo mysql -u rafawordpress -h rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com -prafawordpress1234 -e "CREATE USER 'wordpressuser'@'%' IDENTIFIED BY 'pass1234$';"
-            sudo mysql -u rafawordpress -h rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com -prafawordpress1234 -e "GRANT ALL PRIVILEGES ON WordpressDatabase.* TO 'wordpressuser'@'%';"
-            sudo mysql -u rafawordpress -h rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com -prafawordpress1234 -e "FLUSH PRIVILEGES;"
+            sudo mysql -u rafawordpress -h ${WordpressDB.Endpoint.Address} -prafawordpress1234 -e "CREATE USER 'wordpressuser'@'%' IDENTIFIED BY 'pass1234$';"
+            sudo mysql -u rafawordpress -h ${WordpressDB.Endpoint.Address} -prafawordpress1234 -e "GRANT ALL PRIVILEGES ON WordpressDatabase.* TO 'wordpressuser'@'%';"
+            sudo mysql -u rafawordpress -h ${WordpressDB.Endpoint.Address} -prafawordpress1234 -e "FLUSH PRIVILEGES;"
 
             sudo service httpd restart
 
 Outputs:
-  InstaceId:
+  InstanceId:
     Description: Instance ID
     Value: !Ref WordpressServerRafa
   ServerPublicIP:
     Description: Public URL of the server
     Value: !Sub "http://${WordpressServerRafa.PublicDnsName}:80"
+  PuntoEnlaceDB:
+    Description: Enpoint DataBase
+    Value: !Sub ${WordpressDB.Endpoint.Address}
