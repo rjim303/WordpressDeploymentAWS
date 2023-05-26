@@ -42,7 +42,7 @@ cd wordpress
 sed -i 's/database_name_here/WordpressDatabase/' wp-config.php
 sed -i 's/username_here/wordpressuser/' wp-config.php
 sed -i 's/password_here/pass1234$/' wp-config.php
-sed -i 's/localhost/rafadatabase.c5vgwa0ff0gx.us-east-1.rds.amazonaws.com/' wp-config.php
+sed -i 's/localhost/${WordpressDB.Endpoint.Address}/' wp-config.php
 ```
 
 ## Otras configuracion finales
